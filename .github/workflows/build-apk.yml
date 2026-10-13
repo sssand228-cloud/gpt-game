@@ -1,4 +1,4 @@
-name: Build Stick Clash Arena V10.1 APK
+name: Build Stick Clash Arena V10.2 Release APK
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extract game
-        run: unzip -o StickClashArena_V10_1_Source.zip
+        run: unzip -o StickClashArena_V10_2_Source.zip
 
       - name: Configure Android SDK
         shell: bash
@@ -38,12 +38,34 @@ jobs:
         run: |
           sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
 
-      - name: Build APK
-        run: gradle --no-daemon assembleDebug
+      - name: Restore release signing key
+        env:
+          SCA_KEYSTORE_B64: ${{ secrets.SCA_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$SCA_KEYSTORE_B64" ]; then
+            echo "SCA_KEYSTORE_B64 secret is missing"
+            exit 1
+          fi
 
-      - name: Upload APK
+          echo "$SCA_KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/stickclash-release.jks"
+          echo "SCA_KEYSTORE_PATH=$RUNNER_TEMP/stickclash-release.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed Release APK
+        env:
+          SCA_KEYSTORE_PASSWORD: ${{ secrets.SCA_KEYSTORE_PASSWORD }}
+          SCA_KEY_ALIAS: ${{ secrets.SCA_KEY_ALIAS }}
+          SCA_KEY_PASSWORD: ${{ secrets.SCA_KEY_PASSWORD }}
+        run: gradle --no-daemon assembleRelease
+
+      - name: Verify APK signature
+        run: |
+          "$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner" verify \
+            --verbose \
+            app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: StickClashArena-V10.1-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: StickClashArena-V10.2-RELEASE
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
