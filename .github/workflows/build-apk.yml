@@ -1,4 +1,4 @@
-name: Build Stick Clash Arena V7 APK
+name: Build Stick Clash Arena V8 APK
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Extract game
-        run: unzip -o StickClashArena_V7_Source.zip
+        run: unzip -o StickClashArena_V8_Source.zip
 
       - name: Configure Android SDK
         shell: bash
@@ -44,6 +44,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: StickClashArena-V7-APK
+          name: StickClashArena-V8-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
