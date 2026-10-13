@@ -104,6 +104,9 @@ jobs:
           3caj2lyba3Ntrs21uTbX5tpcm2tz/SbX/wNBGYQZAKAAAA==
           GAME_DATA
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install Android SDK packages
         shell: bash
         run: |
